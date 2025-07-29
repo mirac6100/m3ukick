@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Install streamlink
-RUN pip3 install streamlink
+# Install streamlink with --break-system-packages flag
+RUN pip3 install --break-system-packages streamlink
 
 # Set working directory
 WORKDIR /app
