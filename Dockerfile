@@ -1,14 +1,20 @@
 FROM node:18-slim
 
-# Install system dependencies
+# Update package list and install dependencies
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+    curl \
+    gnupg \
+    software-properties-common \
+    ffmpeg
 
-# Install streamlink with --break-system-packages flag
-RUN pip3 install --break-system-packages streamlink
+# Add Debian testing repository for newer streamlink
+RUN echo "deb http://deb.debian.org/debian testing main" >> /etc/apt/sources.list
+
+# Update package list and install streamlink
+RUN apt-get update && apt-get install -y streamlink
+
+# Clean up
+RUN rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -16,7 +22,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install Node.js dependencies
 RUN npm install
 
 # Copy application code
