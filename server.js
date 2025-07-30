@@ -31,25 +31,23 @@ app.get('/kick/:channel', (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     
-    // Streamlink process
-    const streamlink = spawn('streamlink', [
-        '--stdout',
-        '--retry-max', '5',
-        '--retry-streams', '10',
-        `https://kick.com/${channel}`,
-        'best'
+    // yt-dlp process
+    const ytdlp = spawn('yt-dlp', [
+        '--output', '-',
+        '--format', 'best[ext=mp4]/best',
+        `https://kick.com/${channel}`
     ]);
     
     // Pipe stream to response
-    streamlink.stdout.pipe(res);
+    ytdlp.stdout.pipe(res);
     
     // Error handling
-    streamlink.stderr.on('data', (data) => {
-        console.error(`Streamlink error: ${data}`);
+    ytdlp.stderr.on('data', (data) => {
+        console.error(`yt-dlp error: ${data}`);
     });
     
-    streamlink.on('close', (code) => {
-        console.log(`Streamlink process exited with code ${code}`);
+    ytdlp.on('close', (code) => {
+        console.log(`yt-dlp process exited with code ${code}`);
         if (!res.headersSent) {
             res.status(500).send('Stream ended');
         }
@@ -57,7 +55,7 @@ app.get('/kick/:channel', (req, res) => {
     
     // Cleanup on client disconnect
     req.on('close', () => {
-        streamlink.kill();
+        ytdlp.kill();
     });
 });
 
